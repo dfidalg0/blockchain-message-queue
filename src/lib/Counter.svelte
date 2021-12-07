@@ -1,9 +1,30 @@
 <script>
 let count = 0;
+
+const debounce = (fn, time) => {
+    let timeout;
+
+    return (...args) => {
+        clearTimeout(timeout);
+
+        timeout = setTimeout(() => fn(...args), time);
+    };
+};
+
+const onClick = debounce(async () => {
+    const res = await fetch('/api/contract', { method: 'post' });
+
+    const contract = await res.json();
+
+    console.log(contract);
+    alert('Contract compiled:\n\n' + JSON.stringify(contract, null, 4));
+
+    count++;
+}, 500);
 </script>
 
-<button on:click={() => count++}>
-    Clicks: {count}
+<button on:click={onClick}>
+    Compiled Contracts: {count}
 </button>
 
 <style>

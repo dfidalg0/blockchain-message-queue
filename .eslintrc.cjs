@@ -52,7 +52,7 @@ const config = {
             processor: 'svelte3/svelte3'
         },
         {
-            files: ['*.cjs'],
+            files: ['*.cjs', 'server/**/*', 'server/*'],
             env: {
                 node: true,
             }
