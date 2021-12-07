@@ -5,7 +5,7 @@
     "main": "index.js",
     "private": true,
     "scripts": {
-        "dev": "nodemon --signal SIGINT index.js"
+        "dev": "nodemon --signal SIGINT index.js --ext js,sol"
     },
     "devDependencies": {
         "@types/express": "^4.17.13"

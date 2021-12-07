@@ -1,4 +1,6 @@
 <script>
+import axios from 'axios';
+
 let count = 0;
 
 const debounce = (fn, time) => {
@@ -12,9 +14,10 @@ const debounce = (fn, time) => {
 };
 
 const onClick = debounce(async () => {
-    const res = await fetch('/api/contract', { method: 'post' });
-
-    const contract = await res.json();
+    const { data: contract } = await axios.post('/api/topic', {
+        publishers: [],
+        listeners: [],
+    });
 
     console.log(contract);
     alert('Contract compiled:\n\n' + JSON.stringify(contract, null, 4));

@@ -1,5 +1,11 @@
-const solc = require('solc');
 const { parentPort } = require('worker_threads');
+const fs = require('fs');
+const path = require('path');
+const solc = require('solc');
+
+const templatePath = path.resolve(__dirname, 'input.sol');
+
+const template = fs.readFileSync(templatePath, 'utf-8');
 
 parentPort.on('message', ({ id, code }) => {
     try {
@@ -7,7 +13,7 @@ parentPort.on('message', ({ id, code }) => {
             language: 'Solidity',
             sources: {
                 'input.sol': {
-                    content: code
+                    content: template.replace('//->INJECT', code)
                 }
             },
             settings: {
@@ -19,7 +25,8 @@ parentPort.on('message', ({ id, code }) => {
             }
         });
 
-        const output = JSON.parse(solc.compile(input)).contracts['input.sol'];
+        const compiled = JSON.parse(solc.compile(input));
+        const output = compiled.contracts['input.sol'].Topic;
         parentPort.postMessage({ id, output });
     }
     catch (err) {

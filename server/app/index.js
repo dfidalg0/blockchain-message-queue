@@ -1,19 +1,12 @@
 const express = require('express');
 const morgan = require('morgan');
-const solc = require('../solc');
+const routes = require('./routes');
 
 const app = express();
 
 app.use(morgan('dev'));
+app.use(express.json());
 
-app.post('/contract', async (_, res) => {
-    const out = await solc.compile('contract C { function f() public {} }');
-
-    res.json(out);
-});
-
-app.get('/', (_, res) => {
-    res.send('Hello, World!');
-});
+app.use('/api', routes);
 
 module.exports = app;

@@ -19,11 +19,15 @@ void async function () {
         /**@type {string} */
         const str = d.toString('utf-8');
 
-        process.stdout.write(str);
-
         if (str.includes('WebSocket enabled')) {
+            const p = PORT;
+
             require('./app').listen(PORT, () => {
-                console.log(`Server started at port ${PORT}`);
+                console.log('\u001b[32m');
+                console.log('┌───────────────────────────────────────────────┐');
+                console.log(`│          Server started on port ${p}          │`);
+                console.log('└───────────────────────────────────────────────┘');
+                console.log('\u001b[00m');
             });
 
             node.stderr.off('data', startHandler);
