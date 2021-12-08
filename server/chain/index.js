@@ -5,13 +5,15 @@ const { promisify } = require('util');
 
 const exec = promisify(cp.exec);
 
+const ethPath = path.resolve(__dirname, '../.eth');
+
 /**@param {string} cmd */
-const run = cmd => exec(cmd).then(r => r.stdout);
+const run = cmd => exec(cmd, { cwd: ethPath }).then(r => r.stdout);
 
 module.exports = {
+    run,
+    ethPath,
     async createChain() {
-        const ethPath = path.resolve(__dirname, '../.eth');
-
         if (fs.existsSync(ethPath)) return;
 
         await fs.promises.mkdir(ethPath);
@@ -22,7 +24,6 @@ module.exports = {
             fs.promises.readFile(path.resolve(__dirname, 'genesis.json'), 'utf-8')
                 .then(JSON.parse)
         ]);
-
 
         genesis.alloc = accounts.reduce((alloc, acc) => ({
             ...alloc,
@@ -53,9 +54,10 @@ module.exports = {
             `--networkid 15`,
             `--ws`,
             `--ws.port 8485`,
-            // `--mine`,
-            // `--miner.threads=1`,
-            // `--miner.etherbase=0x${accounts[0]}`,
+            `--mine`,
+            `--miner.threads=1`,
+            `--miner.etherbase=0x${accounts[0]}`,
+            `--allow-insecure-unlock`
         ];
 
         return cp.spawn('geth', args, {

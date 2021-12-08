@@ -1,12 +1,56 @@
 <script>
+import { io } from 'socket.io-client';
+
 import Topic from './lib/Topic.svelte';
 import Footer from './lib/Footer.svelte';
+import Button from './lib/Button.svelte';
+import Account from './lib/Account.svelte';
+import account from './stores/account';
+
+let connecting = false;
+let socket;
+
+function connect() {
+    connecting = true;
+
+    socket = io('http://localhost:5000');
+    socket.connect();
+
+    socket.on('disconnect', () => {
+        $account = null;
+        connecting = true;
+    });
+
+    socket.on('loaded', ({ id, pswd }) => {
+        $account = {
+            addr: id,
+            pswd,
+            socket
+        };
+
+        connecting = false;
+    });
+}
 </script>
 
 <main>
     <h1>Fila de Mensagens</h1>
 
-    <Topic />
+    {#if connecting}
+        <div>
+            Conectando...
+        </div>
+    {/if}
+
+    {#if $account}
+        <Topic />
+
+        <Account addr={$account.addr} />
+    {:else}
+        <Button on:click={connect} disabled={connecting}>
+            Conectar
+        </Button>
+    {/if}
 
     <Footer />
 </main>

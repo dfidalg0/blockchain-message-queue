@@ -1,6 +1,5 @@
 const chain = require('./chain');
-
-const PORT = process.env.PORT || 5000;
+const app = require('./app');
 
 void async function () {
     await chain.createChain();
@@ -20,17 +19,9 @@ void async function () {
         const str = d.toString('utf-8');
 
         if (str.includes('WebSocket enabled')) {
-            const p = PORT;
-
-            require('./app').listen(PORT, () => {
-                console.log('\u001b[32m');
-                console.log('┌───────────────────────────────────────────────┐');
-                console.log(`│          Server started on port ${p}          │`);
-                console.log('└───────────────────────────────────────────────┘');
-                console.log('\u001b[00m');
-            });
-
             node.stderr.off('data', startHandler);
+
+            app.start();
         }
     };
 
