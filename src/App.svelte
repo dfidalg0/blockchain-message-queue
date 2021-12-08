@@ -4,19 +4,19 @@ import Counter from './lib/Counter.svelte';
 </script>
 
 <main>
-    <img src={logo} alt="Svelte Logo" />
-    <h1>Hello world!</h1>
+    <!-- <img src={logo} alt="Svelte Logo" /> -->
+    <h1>Fila de Mensagens</h1>
 
     <Counter />
 
-    <p>
+    <!-- <p>
         Visit <a href="https://svelte.dev">svelte.dev</a> to learn how to build Svelte
         apps.
-    </p>
+    </p> -->
 
     <p>
-        Check out <a href="https://github.com/sveltejs/kit#readme">SvelteKit</a>
-        for the officially supported framework, also powered by Vite!
+        Repositório do trabalho disponível em:
+         <a href="https://github.com/diegood12/blockchain-message-queue">github</a>
     </p>
 </main>
 
@@ -39,9 +39,9 @@ img {
 }
 
 h1 {
-    color: #ff3e00;
+    color: #1bb15a;
     text-transform: uppercase;
-    font-size: 4rem;
+    font-size: 3rem;
     font-weight: 100;
     line-height: 1.1;
     margin: 2rem auto;

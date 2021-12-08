@@ -53,9 +53,9 @@ module.exports = {
             `--networkid 15`,
             `--ws`,
             `--ws.port 8485`,
-            `--mine`,
-            `--miner.threads=1`,
-            `--miner.etherbase=0x${accounts[0]}`,
+            // `--mine`,
+            // `--miner.threads=1`,
+            // `--miner.etherbase=0x${accounts[0]}`,
         ];
 
         return cp.spawn('geth', args, {
