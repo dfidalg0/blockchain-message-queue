@@ -3,6 +3,18 @@ import Input from './Input.svelte';
 import Button from './Button.svelte';
 
 import topics from '../stores/topics';
+import account from '../stores/account';
+
+function send(abi, address, payload) {
+    $account.socket.send({
+        type: 'message',
+        abi,
+        address,
+        payload,
+    });
+}
+
+let inputs = {};
 </script>
 
 <div class="container">
@@ -14,14 +26,14 @@ import topics from '../stores/topics';
         Nenhum tópico publicável
     {/if}
 
-    {#each $topics as topic}
+    {#each $topics as { abi, address }}
         <div class="topic">
             <div class="title">
-                {topic.address}
+                {address}
             </div>
             <div class="send-box">
-                <Input />
-                <Button>
+                <Input bind:value={inputs[address]} />
+                <Button on:click={() => send(abi, address, inputs[address])}>
                     Enviar
                 </Button>
             </div>

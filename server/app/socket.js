@@ -8,7 +8,10 @@ const randomBytes = promisify(crypto.randomBytes);
 
 /**@typedef {import('socket.io').Socket} Socket*/
 
+const sockets = {};
+
 module.exports = {
+    getSocket: addr => sockets[addr],
     async onConnect(/**@type {Socket}*/ socket) {
         const pswd = await randomBytes(6).then(b => b.toString('hex'));
 
@@ -28,6 +31,8 @@ module.exports = {
             web3.eth.personal.unlockAccount(id, pswd)
         ]);
 
+        sockets[id.toLowerCase()] = socket;
+
         socket.emit('loaded', { id, pswd });
 
         socket.on('disconnect', async () => {
@@ -35,9 +40,41 @@ module.exports = {
 
             const files = await fs.readdir(keystore);
 
-            const key = files.find(file => file.endsWith(id.slice(2)));
+            const key = files
+                .find(file => file.endsWith(id.slice(2).toLowerCase()));
+
+            console.log('ESSA É A MINHA CHAVE: ' + key);
 
             await fs.unlink(path.resolve(chain.ethPath, 'data/keystore', key));
+
+            delete sockets[id.toLowerCase()];
+        });
+
+        socket.on('message', async msg => {
+            switch (msg.type) {
+                case 'message': {
+                    const { abi, address, payload } = msg;
+
+                    const contract = new web3.eth.Contract(abi, address);
+
+                    const Method = contract.methods.publish(addr, payload);
+
+                    const gas = await Method.estimateGas();
+
+                    const res = await Method.send({
+                        from: addr,
+                        gas: 2 * gas,
+                        gasPrice: web3.utils.toWei('0.00000001', 'ether'),
+                    });
+
+                    socket.send({
+                        type: 'response',
+                        payload: res
+                    });
+
+                    break;
+                }
+            }
         });
     }
 };

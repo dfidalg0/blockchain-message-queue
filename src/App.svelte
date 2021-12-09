@@ -2,13 +2,15 @@
 import { io } from 'socket.io-client';
 
 import Topic from './lib/Topic.svelte';
-import Message from './lib/Message.svelte';
+import Publish from './lib/Publish.svelte';
 import Footer from './lib/Footer.svelte';
 import Button from './lib/Button.svelte';
 import Account from './lib/Account.svelte';
 import Dialog from './lib/Dialog.svelte';
 
 import account from './stores/account';
+import topics from './stores/topics';
+import publishings from './stores/publishings';
 
 let connecting = false;
 
@@ -32,7 +34,22 @@ function connect() {
 
         connecting = false;
     });
+
+    socket.on('message', msg => {
+        switch (msg.type) {
+            case 'topic': {
+                $topics = [...$topics, msg.payload];
+                break;
+            }
+            case 'publish': {
+                $publishings = [...$publishings, msg.payload];
+                break;
+            }
+        }
+    });
 }
+
+$: console.log($publishings);
 
 let showTopicDialog = false;
 let showMessageDialog = false;
@@ -53,7 +70,7 @@ let showMessageDialog = false;
         </Dialog>
 
         <Dialog bind:show={showMessageDialog}>
-            <Message />
+            <Publish />
         </Dialog>
 
         <Button on:click={() => showTopicDialog = true}>

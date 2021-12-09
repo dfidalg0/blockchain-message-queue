@@ -13,7 +13,6 @@ contract Topic {
         //->INJECT
 
         current = 0;
-        owner = msg.sender;
         if (!isPublisher[owner]) {
             addPublisher(owner);
         }
@@ -28,7 +27,7 @@ contract Topic {
     mapping(address => bool) private isListener;
 
     uint private current;
-    Message[] private messages;
+    mapping (uint => Message) private messages;
 
     function addPublisher(address _addr) private {
         isPublisher[_addr] = true;
@@ -42,11 +41,15 @@ contract Topic {
 
     event Publish(uint id);
 
-    function publish(string calldata _payload) public {
-        require(isPublisher[msg.sender]);
-        uint id = current++;
+    function publish(address sender, string calldata _payload) public {
+        require(isPublisher[sender], "wtf?");
+
+        uint id = current;
+        current = current + 1;
+
         Message storage currentMessage = messages[id];
-        currentMessage.sender = msg.sender;
+
+        currentMessage.sender = sender;
         currentMessage.payload = _payload;
         currentMessage.visible = false;
 
@@ -55,10 +58,10 @@ contract Topic {
 
     event Visible(uint id);
 
-    function ack(uint _id) public {
-        require(isListener[msg.sender]);
+    function ack(address sender, uint _id) public {
+        require(isListener[sender]);
         Message storage currentMessage = messages[_id];
-        currentMessage.acks[msg.sender] = true;
+        currentMessage.acks[sender] = true;
 
         bool visible = true;
 
@@ -74,12 +77,13 @@ contract Topic {
         }
     }
 
-    function getMessage(uint _id) view public returns (string memory payload) {
-        require(isListener[msg.sender]);
+    function getMessage(
+        address sender, uint _id
+    ) view public returns (string memory payload) {
+        require(isListener[sender]);
 
         Message storage currentMessage = messages[_id];
 
-        require(_id < messages.length);
         require(currentMessage.visible);
 
         return currentMessage.payload;

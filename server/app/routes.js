@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const solc = require('../solc');
 const chain = require('../chain');
+const { getSocket } = require('./socket');
 
 const routes = Router();
 
@@ -11,7 +12,7 @@ routes.post('/topic', async (req, res) => {
         !Array.isArray(publishers) ||
         !Array.isArray(listeners) ||
         ![...publishers, ...listeners].every(addr =>
-            typeof addr === 'string' && addr.match(/^0x[a-fA-F0-9]{40}$/)
+            getSocket(addr.toLowerCase())
         ) ||
         typeof addr !== 'string' ||
         typeof pswd !== 'string'
@@ -43,6 +44,7 @@ routes.post('/topic', async (req, res) => {
         .join('');
 
     const out = await solc.compile(`
+        owner = ${web3.utils.toChecksumAddress(addr)};
         ${addPublishers}
         ${addListeners}
     `);
@@ -62,7 +64,47 @@ routes.post('/topic', async (req, res) => {
 
         const { address, jsonInterface: abi } = contract.options;
 
-        return res.json({ address, abi });
+        const topic = { address, abi };
+
+        for (const publisher of publishers) {
+            const id = publisher.toLowerCase();
+
+            if (id === addr.toLowerCase()) continue;
+
+            const socket = getSocket(id);
+
+            socket.send({
+                type: 'topic',
+                payload: topic
+            });
+        }
+
+        for (const listener of listeners) {
+            const Event = contract.events.Publish();
+
+            const handler = e => {
+                const id = listener.toLowerCase();
+
+                const socket = getSocket(id);
+
+                if (!socket) {
+                    Event.off('data', handler);
+                    return;
+                }
+
+                socket.send({
+                    type: 'publish',
+                    payload: {
+                        id: e.returnValues.id,
+                        topic: contract.options.address
+                    }
+                });
+            };
+
+            Event.on('data', handler);
+        }
+
+        return res.json(topic);
     }
     catch (err) {
         return res.status(401).json({
