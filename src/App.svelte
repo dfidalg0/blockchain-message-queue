@@ -2,18 +2,20 @@
 import { io } from 'socket.io-client';
 
 import Topic from './lib/Topic.svelte';
+import Message from './lib/Message.svelte';
 import Footer from './lib/Footer.svelte';
 import Button from './lib/Button.svelte';
 import Account from './lib/Account.svelte';
+import Dialog from './lib/Dialog.svelte';
+
 import account from './stores/account';
 
 let connecting = false;
-let socket;
 
 function connect() {
     connecting = true;
 
-    socket = io('http://localhost:5000');
+    const socket = io('http://localhost:5000');
     socket.connect();
 
     socket.on('disconnect', () => {
@@ -31,6 +33,9 @@ function connect() {
         connecting = false;
     });
 }
+
+let showTopicDialog = false;
+let showMessageDialog = false;
 </script>
 
 <main>
@@ -43,7 +48,21 @@ function connect() {
     {/if}
 
     {#if $account}
-        <Topic />
+        <Dialog bind:show={showTopicDialog}>
+            <Topic />
+        </Dialog>
+
+        <Dialog bind:show={showMessageDialog}>
+            <Message />
+        </Dialog>
+
+        <Button on:click={() => showTopicDialog = true}>
+            Criar tópico
+        </Button>
+
+        <Button on:click={() => showMessageDialog = true}>
+            Publicar mensagem
+        </Button>
 
         <Account addr={$account.addr} />
     {:else}
@@ -60,6 +79,10 @@ main {
     text-align: center;
     padding: 1em;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10pt;
 }
 
 h1 {

@@ -3,6 +3,7 @@ import axios from 'axios';
 import Button from './Button.svelte';
 import Input from './Input.svelte';
 import account from '../stores/account';
+import topics from '../stores/topics';
 
 let listeners = [];
 let publishers = [];
@@ -13,9 +14,17 @@ function addListener() {
     currentListener = '';
 }
 
+function removeListener(listener) {
+    listeners = listeners.filter(l => l !== listener);
+}
+
 function addPublisher() {
     publishers = [...publishers, currentPublisher];
     currentPublisher = '';
+}
+
+function removePublisher(publisher) {
+    publishers = publishers.filter(l => l !== publisher);
 }
 
 let currentListener = '';
@@ -39,17 +48,17 @@ async function onClick() {
     try{
         topicPublishPending = true;
 
-        const { data: contract } = await axios.post('/api/topic', {
+        const { data: topic } = await axios.post('/api/topic', {
             publishers,
             listeners,
             addr: $account.addr,
             pswd: $account.pswd
         });
 
-        console.log(contract);
-
         publishers = [];
         listeners = [];
+
+        $topics = [...$topics, topic];
     }
     catch(err){
         if (err.response) {
@@ -66,13 +75,15 @@ async function onClick() {
 </script>
 
 <div class="container">
+    <h1>Adicionar Tópico</h1>
+
     <div>
         <Input bind:value={currentListener} />
         <Button
             on:click={addListener}
             disabled={listDisabled}
         >
-            Add Listener
+            + Listener
         </Button>
     </div>
 
@@ -82,13 +93,13 @@ async function onClick() {
             on:click={addPublisher}
             disabled={pubDisabled}
         >
-            Add Publisher
+            + Publisher
         </Button>
     </div>
 
     <div>
         <Button on:click={onClick} {disabled}>
-            Criar Tópico
+            {topicPublishPending ? 'Criando tópico' : 'Criar Tópico'}
         </Button>
     </div>
 
@@ -98,6 +109,12 @@ async function onClick() {
             {#each listeners as listener }
                 <p>
                     {listener}
+                    <span
+                        class="remove"
+                        on:click={() => removeListener(listener)}
+                    >
+                        X
+                    </span>
                 </p>
             {/each}
         </div>
@@ -106,6 +123,12 @@ async function onClick() {
             {#each publishers as publisher}
                 <p>
                     {publisher}
+                    <span
+                        class="remove"
+                        on:click={() => removePublisher(publisher)}
+                    >
+                        X
+                    </span>
                 </p>
             {/each}
         </div>
@@ -129,6 +152,12 @@ async function onClick() {
 .list {
     text-align: center;
     flex-basis: 50%;
-    min-width: 300pt;
+    min-width: 410px;
+}
+
+.remove {
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 4pt;
 }
 </style>
