@@ -80,15 +80,12 @@ routes.post('/topic', async (req, res) => {
         }
 
         for (const listener of listeners) {
-            const Event = contract.events.Publish();
-
-            const handler = e => {
+            contract.events.Publish().on('data', e => {
                 const id = listener.toLowerCase();
 
                 const socket = getSocket(id);
 
                 if (!socket) {
-                    Event.off('data', handler);
                     return;
                 }
 
@@ -96,12 +93,42 @@ routes.post('/topic', async (req, res) => {
                     type: 'publish',
                     payload: {
                         id: e.returnValues.id,
-                        topic: contract.options.address
+                        topic: {
+                            address: contract.options.address,
+                            abi: contract.options.jsonInterface
+                        }
                     }
                 });
-            };
+            });
 
-            Event.on('data', handler);
+            contract.events.Visible().on('data', async e => {
+                const id = listener.toLowerCase();
+
+                const socket = getSocket(id);
+
+                if (!socket) {
+                    return;
+                }
+
+                const { id: msgId } = e.returnValues;
+
+                const text = await contract.methods.getMessage(
+                    web3.utils.toChecksumAddress(id),
+                    msgId
+                ).call();
+
+                socket.send({
+                    type: 'message',
+                    payload: {
+                        id: msgId,
+                        topic: {
+                            address: contract.options.address,
+                            abi: contract.options.jsonInterface
+                        },
+                        text
+                    }
+                });
+            });
         }
 
         return res.json(topic);

@@ -7,10 +7,13 @@ import Footer from './lib/Footer.svelte';
 import Button from './lib/Button.svelte';
 import Account from './lib/Account.svelte';
 import Dialog from './lib/Dialog.svelte';
+import Ack from './lib/Ack.svelte';
+import Message from './lib/Message.svelte';
 
 import account from './stores/account';
 import topics from './stores/topics';
 import publishings from './stores/publishings';
+import messages from './stores/messages';
 
 let connecting = false;
 
@@ -45,11 +48,12 @@ function connect() {
                 $publishings = [...$publishings, msg.payload];
                 break;
             }
+            case 'message': {
+                $messages = [...$messages, msg.payload];
+            }
         }
     });
 }
-
-$: console.log($publishings);
 
 let showTopicDialog = false;
 let showMessageDialog = false;
@@ -88,6 +92,28 @@ let showMessageDialog = false;
         </Button>
     {/if}
 
+    {#each $publishings as { id, topic }, index (index)}
+        <div class="ack" style="--distance: {index * 55}pt">
+            <Ack {id} {topic}
+                on:ack={e => $publishings = $publishings.filter(
+                    p => p.id !== e.detail
+                )}
+            />
+        </div>
+    {/each}
+
+    <div class="messages">
+        {#if $messages.length}
+            <h2>Mensagens recebidas</h2>
+        {:else if $account}
+            <h3>Nenhuma mensagem recebida</h3>
+        {/if}
+
+        {#each $messages as { id, text, topic: { address } }, index (index)}
+            <Message {id} {text} {address} />
+        {/each}
+    </div>
+
     <Footer />
 </main>
 
@@ -116,5 +142,22 @@ h1 {
     h1 {
         max-width: none;
     }
+}
+
+.ack {
+    position: fixed;
+    z-index: 10;
+    background: white;
+    right: 2rem;
+    top: calc(2rem + var(--distance, 0px));
+    font-size: 11pt;
+    width: 300pt;
+    padding: .5em;
+    box-shadow: 5px 2px 10px 0px rgba(0, 0, 0, 0.308);
+}
+
+.messages {
+    width: 70vw;
+    overflow: auto;
 }
 </style>

@@ -12,6 +12,8 @@ function send(abi, address, payload) {
         address,
         payload,
     });
+
+    inputs[address] = '';
 }
 
 let inputs = {};

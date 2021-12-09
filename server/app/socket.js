@@ -74,6 +74,23 @@ module.exports = {
 
                     break;
                 }
+                case 'ack': {
+                    const { abi, address, id } = msg.payload;
+
+                    const contract = new web3.eth.Contract(abi, address);
+
+                    const Method = contract.methods.ack(addr, id);
+
+                    const gas = await Method.estimateGas();
+
+                    await Method.send({
+                        from: addr,
+                        gas: 2 * gas,
+                        gasPrice: web3.utils.toWei('0.00000001', 'ether'),
+                    });
+
+                    break;
+                }
             }
         });
     }
