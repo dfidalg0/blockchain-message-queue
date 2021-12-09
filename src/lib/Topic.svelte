@@ -43,6 +43,7 @@ async function onClick() {
             publishers,
             listeners,
             addr: $account.addr,
+            pswd: $account.pswd
         });
 
         console.log(contract);
