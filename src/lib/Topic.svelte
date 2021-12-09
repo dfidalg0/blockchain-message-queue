@@ -2,10 +2,11 @@
 import axios from 'axios';
 import Button from './Button.svelte';
 import Input from './Input.svelte';
+import account from '../stores/account';
 
 let listeners = [];
 let publishers = [];
-let pending = false;
+let topicPublishPending = false;
 
 function addListener() {
     listeners = [...listeners, currentListener];
@@ -20,7 +21,15 @@ function addPublisher() {
 let currentListener = '';
 let currentPublisher = '';
 
-$: disabled = !listeners.length || !publishers.length || pending;
+$: disabled = !listeners.length || topicPublishPending;
+$: pubDisabled = (
+    !isValidEthAddr(currentPublisher) ||
+    publishers.includes(currentPublisher)
+);
+$: listDisabled = (
+    !isValidEthAddr(currentListener) ||
+    listeners.includes(currentListener)
+);
 
 function isValidEthAddr(str) {
     return Boolean(str.match(/^0x[a-fA-F0-9]{40}/));
@@ -28,22 +37,29 @@ function isValidEthAddr(str) {
 
 async function onClick() {
     try{
-        pending = true;
+        topicPublishPending = true;
 
         const { data: contract } = await axios.post('/api/topic', {
             publishers,
             listeners,
+            addr: $account.addr,
         });
 
         console.log(contract);
-        console.log(publishers);
-        console.log(listeners);
+
+        publishers = [];
+        listeners = [];
     }
     catch(err){
-        alert('Entrada inválida');
+        if (err.response) {
+            alert(err.response.data.message);
+        }
+        else {
+            alert('Um erro inesperado ocorreu');
+        }
     }
     finally {
-        pending = false;
+        topicPublishPending = false;
     }
 }
 </script>
@@ -53,7 +69,7 @@ async function onClick() {
         <Input bind:value={currentListener} />
         <Button
             on:click={addListener}
-            disabled={!isValidEthAddr(currentListener)}
+            disabled={listDisabled}
         >
             Add Listener
         </Button>
@@ -63,7 +79,7 @@ async function onClick() {
         <Input bind:value={currentPublisher} />
         <Button
             on:click={addPublisher}
-            disabled={!isValidEthAddr(currentPublisher)}
+            disabled={pubDisabled}
         >
             Add Publisher
         </Button>
@@ -74,19 +90,44 @@ async function onClick() {
             Criar Tópico
         </Button>
     </div>
+
+    <div class="lists">
+        <div class="list">
+            <h2>Listeners</h2>
+            {#each listeners as listener }
+                <p>
+                    {listener}
+                </p>
+            {/each}
+        </div>
+        <div class="list">
+            <h2>Publishers</h2>
+            {#each publishers as publisher}
+                <p>
+                    {publisher}
+                </p>
+            {/each}
+        </div>
+    </div>
 </div>
-
-
-{#each listeners as listener }
-<h1>
-    {listener}
-</h1>
-{/each}
 
 <style>
 .container {
     display: flex;
     flex-direction: column;
     gap: 5pt;
+}
+
+.lists {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.list {
+    text-align: center;
+    flex-basis: 50%;
+    min-width: 300pt;
 }
 </style>

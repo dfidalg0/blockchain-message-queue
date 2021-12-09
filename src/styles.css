@@ -9,6 +9,10 @@
     color: #52ad75;
 }
 
+body {
+    overflow: hidden;
+}
+
 a {
     color: #01ff6b;
     text-decoration: none;

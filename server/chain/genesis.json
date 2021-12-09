@@ -10,6 +10,6 @@
         "petersburgBlock": 0,
         "ethash": {}
     },
-    "difficulty": "1",
-    "gasLimit": "8000000"
+    "difficulty": "0x0",
+    "gasLimit": "999999999999999"
 }

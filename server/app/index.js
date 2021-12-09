@@ -4,6 +4,8 @@ const cors = require('cors');
 const http = require('http');
 const sio = require('socket.io');
 
+const chain = require('../chain');
+
 const PORT = process.env.PORT || 5000;
 
 const routes = require('./routes');
@@ -17,7 +19,13 @@ app.use(cors({ origin: true }));
 
 app.use('/api', routes);
 
-app.start = () => {
+app.start = async () => {
+    const web3 = chain.web3();
+
+    const accs = chain.getAccs();
+
+    await web3.eth.personal.unlockAccount(accs[0], '1234');
+
     const server = http.createServer(app);
 
     const io = sio(server, {

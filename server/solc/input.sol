@@ -4,7 +4,7 @@ pragma solidity ^0.8.1;
 contract Topic {
     struct Message {
         mapping (address => bool) acks;
-        bytes payload;
+        string payload;
         address sender;
         bool visible;
     }
@@ -42,7 +42,7 @@ contract Topic {
 
     event Publish(uint id);
 
-    function publish(bytes calldata _payload) public {
+    function publish(string calldata _payload) public {
         require(isPublisher[msg.sender]);
         uint id = current++;
         Message storage currentMessage = messages[id];
@@ -74,7 +74,7 @@ contract Topic {
         }
     }
 
-    function getMessage(uint _id) view public returns (bytes memory payload) {
+    function getMessage(uint _id) view public returns (string memory payload) {
         require(isListener[msg.sender]);
 
         Message storage currentMessage = messages[_id];

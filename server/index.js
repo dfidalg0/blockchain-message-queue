@@ -18,7 +18,7 @@ void async function () {
         /**@type {string} */
         const str = d.toString('utf-8');
 
-        if (str.includes('WebSocket enabled')) {
+        if (str.includes('IPC endpoint opened')) {
             node.stderr.off('data', startHandler);
 
             app.start();

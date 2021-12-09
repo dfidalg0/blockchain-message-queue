@@ -12,13 +12,21 @@ module.exports = {
     async onConnect(/**@type {Socket}*/ socket) {
         const pswd = await randomBytes(6).then(b => b.toString('hex'));
 
-        const exec = 'geth attach data/geth.ipc --exec';
+        const web3 = chain.web3();
 
-        const id = await chain.run(
-            `${exec} "personal.newAccount('${pswd}')"`
-        ).then(r => r.slice(1, -2));
+        const id = await web3.eth.personal.newAccount(pswd);
 
-        await chain.run(`${exec} "personal.unlockAccount('${id}', '${pswd}')"`);
+        const acc = chain.getAccs()[0];
+        const addr = web3.utils.toChecksumAddress(id);
+
+        await Promise.all([
+            web3.eth.sendTransaction({
+                from: acc,
+                to: addr,
+                value: '999999999999999999999999'
+            }),
+            web3.eth.personal.unlockAccount(id, pswd)
+        ]);
 
         socket.emit('loaded', { id, pswd });
 
